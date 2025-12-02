@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
     public float speed = 1;
     public float speedIncrease, maxSpeed, delayReduce, minDelay;
     public bool isGameStarted;
+    public float questionSpawnDelay = 10f;
     //
     [SerializeField] private Text pointText;
     private void Awake()
@@ -31,6 +32,7 @@ public class GameManager : MonoBehaviour
     {
         isGameStarted = true;
         StartCoroutine(AddPoint());
+        StartCoroutine(QuestionSpawnLoop());
     }
 
     IEnumerator AddPoint()
@@ -52,9 +54,29 @@ public class GameManager : MonoBehaviour
         StartCoroutine(AddPoint());
     }
 
+    public void AddPoint(int amount)
+    {
+        point += amount;
+        pointText.text = point.ToString(CultureInfo.CurrentCulture);
+    }
+
     public void EndGame()
     {
         Debug.Log("Game Ended");
         FindObjectOfType<SceneChanger>().LoadScene("Menu");
+    }
+
+    IEnumerator QuestionSpawnLoop()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(questionSpawnDelay);
+            if (!isGameStarted) continue;
+            if (QuestionManager.instance != null && QuestionBalloonSpawner.instance != null)
+            {
+                if (!QuestionManager.instance.HasRemainingQuestions()) yield break;
+                QuestionBalloonSpawner.instance.Spawn();
+            }
+        }
     }
 }
